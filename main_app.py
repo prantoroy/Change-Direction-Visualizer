@@ -23,8 +23,6 @@ county_names = pd.read_csv(county_names_csv_path)
 
 # Streamlit interface
 st.title("Urban Class Direction Analysis")
-st.header("Beta Version")
-st.subheader("Only works if Urban Class is 2 is Raster")
 
 # Dropdowns for State and County
 state_name = st.selectbox("Select State:", options=county_names["STATE_NAME"].unique())
@@ -40,23 +38,17 @@ uploaded_start_year = st.file_uploader("Upload Start Year Raster (TIF)", type=["
 uploaded_end_year = st.file_uploader("Upload End Year Raster (TIF)", type=["tif"])
 
 # Functions
-def extract_urban_mask(raster_path, geometry, shapefile_crs, urban_class=2):
+def extract_urban_mask(raster_path, geometry, urban_class=2):
     with rasterio.open(raster_path) as src:
         # Ensure the geometry CRS matches the raster CRS
         raster_crs = src.crs
-        if shapefile_crs != raster_crs:
-            geometry = gpd.GeoSeries([geometry], crs=shapefile_crs).to_crs(raster_crs).iloc[0]
+        geometry = gpd.GeoSeries([geometry], crs=shapefile.crs).to_crs(raster_crs).iloc[0]
 
-        # Check if geometry overlaps the raster extent
-        raster_bounds = src.bounds
-        if not geometry.intersects(gpd.GeoSeries.from_bounds(*raster_bounds, crs=raster_crs).unary_union):
-            raise ValueError("Input shapes do not overlap raster.")
-
+        # Perform masking
         shapes = [mapping(geometry)]
         out_image, _ = mask(src, shapes, crop=True, filled=False)
         mask_array = np.where(out_image[0] == urban_class, 1, 0)
     return mask_array
-
 
 def count_directions(urban_mask):
     height, width = urban_mask.shape
@@ -123,9 +115,8 @@ if st.button("Generate Plot"):
             state_geom = filtered_shapefile.geometry.iloc[0]
 
             # Extract urban masks and count directions
-            shapefile_crs = shapefile.crs
-            urban_start = extract_urban_mask(start_path, state_geom, shapefile_crs)
-            urban_end = extract_urban_mask(end_path, state_geom, shapefile_crs)
+            urban_start = extract_urban_mask(start_path, state_geom)
+            urban_end = extract_urban_mask(end_path, state_geom)
 
             counts_start = count_directions(urban_start)
             counts_end = count_directions(urban_end)
