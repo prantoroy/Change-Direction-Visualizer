@@ -44,6 +44,12 @@ if st.button("Generate Plot"):
 
         # Load shapefile and filter
         shapefile = gpd.read_file("temp/shapefile")
+        with rasterio.open(start_path) as src:
+            raster_crs = src.crs  # Get raster CRS
+
+        if shapefile.crs != raster_crs:
+            shapefile = shapefile.to_crs(raster_crs)  # Reproject shapefile to match raster CRS
+
         filtered_shapefile = shapefile[
             (shapefile[unit_area_field] == unit_area_value) & (shapefile[state_field] == state_value)
         ]
@@ -57,7 +63,10 @@ if st.button("Generate Plot"):
             def extract_urban_mask(raster_path, geometry, urban_class=2):
                 with rasterio.open(raster_path) as src:
                     shapes = [mapping(geometry)]
-                    out_image, _ = mask(src, shapes, crop=True, filled=False)
+                    try:
+                        out_image, _ = mask(src, shapes, crop=True, filled=False)
+                    except ValueError:
+                        raise ValueError("Input shapes do not overlap the raster. Check CRS alignment and region selection.")
                     mask_array = np.where(out_image[0] == urban_class, 1, 0)
                 return mask_array
 
