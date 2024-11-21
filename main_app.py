@@ -6,6 +6,23 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 from shapely.geometry import mapping
 
+# Ensure the temp directory exists
+temp_dir = "temp"
+os.makedirs(temp_dir, exist_ok=True)
+
+# Save uploaded files temporarily
+start_path = os.path.join(temp_dir, uploaded_start_year.name)
+end_path = os.path.join(temp_dir, uploaded_end_year.name)
+shapefile_path = os.path.join(temp_dir, "shapefile.zip")
+
+with open(start_path, "wb") as f:
+    f.write(uploaded_start_year.read())
+with open(end_path, "wb") as f:
+    f.write(uploaded_end_year.read())
+with open(shapefile_path, "wb") as f:
+    f.write(uploaded_shapefile.read())
+
+
 # Function to extract urban mask within the shapefile boundary
 def extract_urban_mask(raster_path, geometry, urban_class=2):
     with rasterio.open(raster_path) as src:
