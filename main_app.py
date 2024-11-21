@@ -10,6 +10,7 @@ import zipfile
 
 # Streamlit interface
 st.title("Urban Class Direction Analysis")
+st.header("Make Sure the Urban Class is Set to 2")
 
 uploaded_start_year = st.file_uploader("Upload Start Year Raster (TIF)", type=["tif"])
 uploaded_end_year = st.file_uploader("Upload End Year Raster (TIF)", type=["tif"])
