@@ -8,10 +8,6 @@ import matplotlib.pyplot as plt
 from shapely.geometry import mapping
 import zipfile
 
-# Ensure the temp directory exists
-temp_dir = "temp"
-os.makedirs(temp_dir, exist_ok=True)
-
 # Streamlit interface
 st.title("Urban Class Direction Analysis")
 
@@ -23,6 +19,10 @@ unit_area_field = st.text_input("Unit Area Field (e.g., NAME):", "")
 unit_area_value = st.text_input("Unit Area Value (e.g., County Name):", "")
 state_field = st.text_input("State Field (e.g., STATE_ABBR):", "")
 state_value = st.text_input("State Value (e.g., State Abbreviation):", "")
+
+# Ensure the temp directory exists
+temp_dir = "temp"
+os.makedirs(temp_dir, exist_ok=True)
 
 if st.button("Generate Plot"):
     if uploaded_start_year and uploaded_end_year and uploaded_shapefile:
@@ -39,13 +39,11 @@ if st.button("Generate Plot"):
             f.write(uploaded_shapefile.read())
 
         # Extract shapefile
-        shapefile_dir = os.path.join(temp_dir, "shapefile")
-        os.makedirs(shapefile_dir, exist_ok=True)
         with zipfile.ZipFile(shapefile_path, "r") as zip_ref:
-            zip_ref.extractall(shapefile_dir)
+            zip_ref.extractall("temp/shapefile")
 
         # Load shapefile and filter
-        shapefile = gpd.read_file(shapefile_dir)
+        shapefile = gpd.read_file("temp/shapefile")
         filtered_shapefile = shapefile[
             (shapefile[unit_area_field] == unit_area_value) & (shapefile[state_field] == state_value)
         ]
@@ -55,25 +53,29 @@ if st.button("Generate Plot"):
         else:
             state_geom = filtered_shapefile.geometry.iloc[0]
 
-            # Function to extract urban mask
+            # Function to extract urban mask within the shapefile boundary
             def extract_urban_mask(raster_path, geometry, urban_class=2):
                 with rasterio.open(raster_path) as src:
-                    # Ensure CRS alignment
-                    raster_crs = src.crs
-                    if filtered_shapefile.crs != raster_crs:
-                        geometry = gpd.GeoSeries([geometry]).set_crs(filtered_shapefile.crs).to_crs(raster_crs).iloc[0]
-
                     shapes = [mapping(geometry)]
                     out_image, _ = mask(src, shapes, crop=True, filled=False)
-                    mask_data = np.where(out_image[0] == urban_class, 1, 0)
-                return mask_data
+                    mask_array = np.where(out_image[0] == urban_class, 1, 0)
+                return mask_array
 
-            # Function to count urban pixels in 8 directions
+            # Function to count urban pixels in 8 cardinal directions
             def count_directions(urban_mask):
                 height, width = urban_mask.shape
                 center_y, center_x = height // 2, width // 2
                 directions = [(0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1)]
-                counts = [np.sum(np.roll(np.roll(urban_mask, dy, axis=0), dx, axis=1)) for dy, dx in directions]
+                counts = [
+                    np.sum(
+                        np.roll(
+                            np.roll(urban_mask, dy, axis=0),
+                            dx,
+                            axis=1
+                        )[center_y:, center_x:]
+                    )
+                    for dy, dx in directions
+                ]
                 return counts
 
             # Function to create radar plot
@@ -107,13 +109,14 @@ if st.button("Generate Plot"):
                 plt.close()
                 return plot_path
 
-            # Process data and plot
+            # Process the rasters
             urban_start = extract_urban_mask(start_path, state_geom)
             urban_end = extract_urban_mask(end_path, state_geom)
 
             counts_start = count_directions(urban_start)
             counts_end = count_directions(urban_end)
 
+            # Create and display plot
             plot_path = plot_direction(counts_start, counts_end, unit_area_value)
             st.image(plot_path, caption="Urban Class Change", use_column_width=True)
     else:
