@@ -23,6 +23,8 @@ county_names = pd.read_csv(county_names_csv_path)
 
 # Streamlit interface
 st.title("Urban Class Direction Analysis")
+st.header("Beta Version")
+st.subheader("Only works with Urban Class as 2 is Raster")
 
 # Dropdowns for State and County
 state_name = st.selectbox("Select State:", options=county_names["STATE_NAME"].unique())
