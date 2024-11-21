@@ -16,7 +16,7 @@ os.makedirs(temp_dir, exist_ok=True)
 
 # Paths to static files
 county_names_csv_path = "County_Names.csv"
-shapefile_path = "County_Shape.zip"
+shapefile_path = "County_Bounds.zip"
 
 # Load the CSV file for state and county names
 county_names = pd.read_csv(county_names_csv_path)
