@@ -7,6 +7,7 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 from shapely.geometry import mapping
 import zipfile
+import pandas as pd
 
 
 # Ensure the temp directory exists
