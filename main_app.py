@@ -23,6 +23,8 @@ county_names = pd.read_csv(county_names_csv_path)
 
 # Streamlit interface
 st.title("Urban Class Direction Analysis")
+st.header("Beta Version")
+st.subheader("Only works if Urban Class is 2 is Raster")
 
 # Dropdowns for State and County
 state_name = st.selectbox("Select State:", options=county_names["STATE_NAME"].unique())
@@ -40,8 +42,17 @@ uploaded_end_year = st.file_uploader("Upload End Year Raster (TIF)", type=["tif"
 # Functions
 def extract_urban_mask(raster_path, geometry, urban_class=2):
     with rasterio.open(raster_path) as src:
+        # Ensure the geometry CRS matches the raster CRS
+        if geometry.crs != src.crs:
+            geometry = geometry.to_crs(src.crs)
+
+        # Check if geometry overlaps the raster extent
+        raster_bounds = src.bounds
+        if not geometry.intersects(gpd.GeoSeries.from_bounds(*raster_bounds).unary_union):
+            raise ValueError("Input shapes do not overlap raster.")
+
         shapes = [mapping(geometry)]
-        out_image, _ = rasterio.mask.mask(src, shapes, crop=True, filled=False)
+        out_image, _ = mask(src, shapes, crop=True, filled=False)
         mask = np.where(out_image[0] == urban_class, 1, 0)
     return mask
 
@@ -121,4 +132,3 @@ if st.button("Generate Plot"):
             st.image(plot_path, caption="Urban Class Change", use_column_width=True)
     else:
         st.error("Please upload both raster files.")
-
