@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import rasterio
+from rasterio.mask import mask
 import numpy as np
 import geopandas as gpd
 import matplotlib.pyplot as plt
