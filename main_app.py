@@ -58,10 +58,15 @@ if st.button("Generate Plot"):
             # Function to extract urban mask
             def extract_urban_mask(raster_path, geometry, urban_class=2):
                 with rasterio.open(raster_path) as src:
+                    # Ensure CRS alignment
+                    raster_crs = src.crs
+                    if filtered_shapefile.crs != raster_crs:
+                        geometry = gpd.GeoSeries([geometry]).set_crs(filtered_shapefile.crs).to_crs(raster_crs).iloc[0]
+
                     shapes = [mapping(geometry)]
-                    out_image, _ = rasterio.mask.mask(src, shapes, crop=True, filled=False)
-                    mask = np.where(out_image[0] == urban_class, 1, 0)
-                return mask
+                    out_image, _ = mask(src, shapes, crop=True, filled=False)
+                    mask_data = np.where(out_image[0] == urban_class, 1, 0)
+                return mask_data
 
             # Function to count urban pixels in 8 directions
             def count_directions(urban_mask):
