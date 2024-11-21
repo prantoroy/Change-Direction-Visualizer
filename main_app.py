@@ -50,14 +50,21 @@ def extract_urban_mask(raster_path, geometry, urban_class=2):
         mask_array = np.where(out_image[0] == urban_class, 1, 0)
     return mask_array
 
-def count_directions(urban_mask):
-    height, width = urban_mask.shape
-    center_y, center_x = height // 2, width // 2
-    directions = [(0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1)]
-    counts = [np.sum(np.roll(np.roll(urban_mask, dy, axis=0), dx, axis=1)) for dy, dx in directions]
-    return counts
+def count_directions_overlay(urban_2001, urban_2019):
+    counts_2001 = []
+    counts_2019 = []
+    height, width = urban_2001.shape
+    center_y, center_x = height // 2, width // 2  # State center
 
-def plot_direction(counts_start, counts_end, unit_name):
+    directions = [(0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1)]
+    for dy, dx in directions:
+        mask_2001 = np.roll(np.roll(urban_2001, dy, axis=0), dx, axis=1)
+        mask_2019 = np.roll(np.roll(urban_2019, dy, axis=0), dx, axis=1)
+        counts_2001.append(np.sum(mask_2001[center_y:, center_x:]))
+        counts_2019.append(np.sum(mask_2019[center_y:, center_x:]))
+    return counts_2001, counts_2019
+
+def plot_direction_percentage(counts_start, counts_end, unit_name):
     directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
     angles = np.linspace(0, 2 * np.pi, len(directions), endpoint=False)
 
@@ -74,16 +81,16 @@ def plot_direction(counts_start, counts_end, unit_name):
     ax.set_theta_direction(-1)
     ax.set_theta_offset(np.pi / 2)
 
-    ax.plot(angles, perc_start, label="Start Year", color="orange", linestyle="solid")
-    ax.plot(angles, perc_end, label="End Year", color="darkred", linestyle="solid")
+    ax.plot(angles, perc_start, color="orange", linewidth=2, label="Start Year", linestyle="solid")
+    ax.plot(angles, perc_end, color="darkred", linewidth=2, label="End Year", linestyle="solid")
 
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(directions, fontsize=12)
-    ax.set_title(f"Urban Class Change\n{unit_name}", va="bottom", fontsize=14)
+    ax.set_yticks(np.linspace(0, max(max(perc_start), max(perc_end)), 5))  # Scaled radial grid
+    ax.set_yticklabels([f"{int(y)}%" for y in ax.get_yticks()], fontsize=10)
+    ax.set_title(f"Urban Class Percentage Change\n{unit_name}", va="bottom", fontsize=14)
     ax.legend(loc="upper right", fontsize=10)
 
-    plot_path = "urban_direction_plot.png"
-    plt.savefig(plot_path)
     plt.close()
     return plot_path
 
@@ -118,11 +125,10 @@ if st.button("Generate Plot"):
             urban_start = extract_urban_mask(start_path, state_geom)
             urban_end = extract_urban_mask(end_path, state_geom)
 
-            counts_start = count_directions(urban_start)
-            counts_end = count_directions(urban_end)
+            counts_start, counts_end = count_directions_overlay(urban_start, urban_end)
 
             # Create and display plot
-            plot_path = plot_direction(counts_start, counts_end, f"{county_name}, {state_name}")
+            plot_path = plot_direction_percentage(counts_start, counts_end, f"{county_name}, {state_name}")
             st.image(plot_path, caption="Urban Class Change", use_column_width=True)
     else:
         st.error("Please upload both raster files.")
