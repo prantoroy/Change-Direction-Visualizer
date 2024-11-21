@@ -91,6 +91,8 @@ def plot_direction_percentage(counts_start, counts_end, unit_name):
     ax.set_title(f"Urban Class Percentage Change\n{unit_name}", va="bottom", fontsize=14)
     ax.legend(loc="upper right", fontsize=10)
 
+    plot_path = "urban_direction_plot.png"
+    plt.savefig(plot_path)
     plt.close()
     return plot_path
 
