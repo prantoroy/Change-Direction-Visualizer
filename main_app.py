@@ -36,7 +36,7 @@ county_name = st.selectbox("Select County:", options=filtered_counties["NAME"].u
 selected_main_id = filtered_counties[filtered_counties["NAME"] == county_name]["MainID"].values[0]
 
 # Input for Urban Class Value
-urban_class = st.number_input("Enter Land Cover Class Value:", min_value=0, value=2, step=1)
+urban_class = st.number_input("Enter Land Cover Class Value:", min_value=0, value=2)
 
 # File Uploads
 uploaded_start_year = st.file_uploader("Upload Start Year Raster (TIF)", type=["tif"])
