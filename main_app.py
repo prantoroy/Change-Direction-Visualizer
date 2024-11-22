@@ -9,7 +9,6 @@ from shapely.geometry import mapping
 import zipfile
 import pandas as pd
 
-
 # Ensure the temp directory exists
 temp_dir = "temp"
 os.makedirs(temp_dir, exist_ok=True)
@@ -24,7 +23,7 @@ county_names = pd.read_csv(county_names_csv_path)
 # Streamlit interface
 st.title("Urban Class Direction Analysis")
 st.header("Beta Version")
-st.subheader("Only works with Urban Class as 2 is Raster")
+st.subheader("Select Urban Class Value Below")
 
 # Dropdowns for State and County
 state_name = st.selectbox("Select State:", options=county_names["STATE_NAME"].unique())
@@ -35,12 +34,15 @@ county_name = st.selectbox("Select County:", options=filtered_counties["NAME"].u
 # Retrieve the MainID for the selected county
 selected_main_id = filtered_counties[filtered_counties["NAME"] == county_name]["MainID"].values[0]
 
+# Input for Urban Class Value
+urban_class = st.number_input("Enter Urban Class Value:", min_value=0, value=2, step=1)
+
 # File Uploads
 uploaded_start_year = st.file_uploader("Upload Start Year Raster (TIF)", type=["tif"])
 uploaded_end_year = st.file_uploader("Upload End Year Raster (TIF)", type=["tif"])
 
 # Functions
-def extract_urban_mask(raster_path, geometry, urban_class=2):
+def extract_urban_mask(raster_path, geometry, urban_class):
     with rasterio.open(raster_path) as src:
         # Ensure the geometry CRS matches the raster CRS
         raster_crs = src.crs
@@ -126,8 +128,8 @@ if st.button("Generate Plot"):
             state_geom = filtered_shapefile.geometry.iloc[0]
 
             # Extract urban masks and count directions
-            urban_start = extract_urban_mask(start_path, state_geom)
-            urban_end = extract_urban_mask(end_path, state_geom)
+            urban_start = extract_urban_mask(start_path, state_geom, urban_class)
+            urban_end = extract_urban_mask(end_path, state_geom, urban_class)
 
             counts_start, counts_end = count_directions_overlay(urban_start, urban_end)
 
