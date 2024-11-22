@@ -21,7 +21,7 @@ shapefile_path = "County_Bounds.zip"
 county_names = pd.read_csv(county_names_csv_path)
 
 # Streamlit interface
-st.title("Urban Class Direction Analysis")
+st.title("Land Cover Class Direction Analysis")
 st.header("Beta Version")
 st.markdown(" © Bishal Roy")
 st.markdown("bishal.roy@slu.edu")
@@ -36,7 +36,7 @@ county_name = st.selectbox("Select County:", options=filtered_counties["NAME"].u
 selected_main_id = filtered_counties[filtered_counties["NAME"] == county_name]["MainID"].values[0]
 
 # Input for Urban Class Value
-urban_class = st.number_input("Enter Urban Class Value:", min_value=0, value=2, step=1)
+urban_class = st.number_input("Enter Land Cover Class Value:", min_value=0, value=2, step=1)
 
 # File Uploads
 uploaded_start_year = st.file_uploader("Upload Start Year Raster (TIF)", type=["tif"])
@@ -93,7 +93,7 @@ def plot_direction_percentage(counts_start, counts_end, unit_name):
     ax.set_xticklabels(directions, fontsize=12)
     ax.set_yticks(np.linspace(0, max(max(perc_start), max(perc_end)), 5))  # Scaled radial grid
     ax.set_yticklabels([f"{int(y)}%" for y in ax.get_yticks()], fontsize=10)
-    ax.set_title(f"Urban Class Percentage Change\n{unit_name}", va="bottom", fontsize=14)
+    ax.set_title(f"Land Cover Percentage Change\n{unit_name}", va="bottom", fontsize=14)
     ax.legend(loc="upper right", fontsize=10)
 
     plot_path = "urban_direction_plot.png"
