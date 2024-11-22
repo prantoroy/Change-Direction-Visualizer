@@ -23,7 +23,8 @@ county_names = pd.read_csv(county_names_csv_path)
 # Streamlit interface
 st.title("Urban Class Direction Analysis")
 st.header("Beta Version")
-st.subheader("Select Urban Class Value Below")
+st.markdown(" © Bishal Roy")
+st.markdown("bishal.roy@slu.edu")
 
 # Dropdowns for State and County
 state_name = st.selectbox("Select State:", options=county_names["STATE_NAME"].unique())
