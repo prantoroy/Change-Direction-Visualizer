@@ -136,6 +136,6 @@ if st.button("Generate Plot"):
 
             # Create and display plot
             plot_path = plot_direction_percentage(counts_start, counts_end, f"{county_name}, {state_name}")
-            st.image(plot_path, caption="Urban Class Change", use_column_width=True)
+            st.image(plot_path, caption="Land Cover Class Change", use_column_width=True)
     else:
         st.error("Please upload both raster files.")
