@@ -97,7 +97,7 @@ def plot_direction_percentage(counts_start, counts_end, unit_name):
     ax.legend(loc="upper right", fontsize=10)
 
     plot_path = "urban_direction_plot.png"
-    plt.savefig(plot_path)
+    plt.savefig(plot_path, dpi=300)
     plt.close()
     return plot_path
 
