@@ -95,9 +95,18 @@ def plot_direction_percentage(counts_start, counts_end, unit_name):
     ax.set_yticklabels([f"{int(y)}%" for y in ax.get_yticks()], fontsize=10)
     ax.set_title(f"Land Cover Percentage Change\n{unit_name}", va="bottom", fontsize=14)
     ax.legend(loc="upper right", fontsize=10)
+    plt.text(
+        0.5, -0.1,
+        "change-direction.streamlit.app",
+        fontsize=10,
+        color="gray",
+        ha="center",
+        va="center",
+        transform=ax.transAxes,
+    )
 
     plot_path = "urban_direction_plot.png"
-    plt.savefig(plot_path, dpi=300)
+    plt.savefig(plot_path)
     plt.close()
     return plot_path
 
