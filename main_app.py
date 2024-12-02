@@ -22,7 +22,7 @@ county_names = pd.read_csv(county_names_csv_path)
 
 # Streamlit interface
 st.title("Land Cover Class Direction Analysis")
-st.header("Beta Version")
+st.header("Test Version")
 st.markdown(" © Bishal Roy")
 st.markdown("bishal.roy@slu.edu")
 
